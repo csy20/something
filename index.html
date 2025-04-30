@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost and Found</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Apply Inter font to the body */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom gradient background */
+        .gradient-bg {
+            background: linear-gradient(to bottom, #6ee7b7, #3b82f6);
+        }
+        /* Styling for the active tab */
+        .active-tab {
+            background-color: #ffffff;
+            color: #000000;
+            font-weight: 600;
+        }
+        /* Styling for inactive tabs */
+        .inactive-tab {
+            background-color: rgba(255, 255, 255, 0.7);
+            color: #4b5563;
+        }
+        /* Styling for item cards */
+        .item-card {
+            background-color: white;
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 1.5rem; /* p-6 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        /* Hover effect for item cards */
+        .item-card:hover {
+            transform: translateY(-0.25rem); /* Slightly lift the card */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Increase shadow */
+        }
+        /* Styling for tabs */
+        .tab {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        /* Hover effect for tabs */
+        .tab:hover {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        /* Base styling for form inputs */
+        .form-input, .form-textarea, .form-select {
+            border-radius: 0.375rem; /* rounded-md */
+            border: 1px solid #d1d5db; /* border-gray-300 */
+            padding: 0.5rem 0.75rem; /* py-2 px-3 */
+            font-size: 1rem;
+            line-height: 1.5rem;
+            width: 100%;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            appearance: none; /* Remove default styling for select */
+        }
+        /* Focus styling for form inputs */
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: #3b82f6; /* focus:border-blue-500 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); /* focus:ring */
+        }
+        /* Specific styling for textarea */
+        .form-textarea {
+            min-height: 6rem; /* Increased min-height */
+            resize: vertical;
+        }
+        /* Styling for report buttons */
+        .report-button {
+            border-radius: 0.375rem; /* rounded-md */
+            padding: 0.75rem 1.5rem; /* py-3 px-6 */
+            font-size: 1rem;
+            line-height: 1.5rem;
+            font-weight: 600;
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
+        }
+        /* Hover effect for report buttons */
+        .report-button:hover {
+            transform: translateY(-0.125rem); /* Slight lift on hover */
+        }
+        /* Green button styling */
+        .report-button.green {
+            background-color: #16a34a; /* bg-green-600 */
+        }
+        .report-button.green:hover {
+            background-color: #15803d; /* hover:bg-green-700 */
+        }
+        /* Red button styling */
+        .report-button.red {
+            background-color: #dc2626; /* bg-red-600 */
+        }
+        .report-button.red:hover {
+            background-color: #b91c1c; /* hover:bg-red-700 */
+        }
+        /* Styling for the message box */
+        #message-box {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 1.5rem;
+            border-radius: 0.375rem;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease, bottom 0.5s ease;
+            pointer-events: none; /* Allow clicks through when hidden */
+        }
+        #message-box.show {
+            opacity: 1;
+            bottom: 30px; /* Slide up */
+            pointer-events: auto;
+        }
+        #message-box.success {
+            background-color: #16a34a; /* Green for success */
+        }
+        #message-box.error {
+            background-color: #dc2626; /* Red for error */
+        }
+         /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .tab {
+                padding: 0.5rem 0.75rem; /* Smaller padding on small screens */
+                font-size: 0.875rem; /* Smaller font size */
+            }
+            .container {
+                 padding: 1rem; /* Less padding on small screens */
+            }
+            h1 {
+                font-size: 1.875rem; /* Smaller heading */
+            }
+            .grid {
+                 grid-template-columns: 1fr; /* Stack items vertically */
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 gradient-bg min-h-screen">
+    <div class="container mx-auto p-4 sm:p-6 md:p-10 lg:p-12">
+        <h1 class="text-3xl sm:text-4xl font-semibold text-white text-center mb-8">
+            <span class="block sm:inline">Lost and Found</span>
+        </h1>
+
+        <div class="mb-8">
+            <div class="flex flex-wrap justify-center space-x-2 sm:space-x-4">
+                <button id="home-tab" class="tab px-4 py-2 sm:px-6 sm:py-3 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75 active-tab">
+                    Home
+                </button>
+                <button id="found-items-tab" class="tab px-4 py-2 sm:px-6 sm:py-3 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75 inactive-tab">
+                    Found Items
+                </button>
+                <button id="lost-items-tab" class="tab px-4 py-2 sm:px-6 sm:py-3 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75 inactive-tab">
+                    Lost Items
+                </button>
+            </div>
+        </div>
+
+        <div id="content-container" class="space-y-8">
+            <div id="home-page" class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold text-blue-700 mb-4">Welcome to Lost and Found</h2>
+                <p class="text-gray-700 mb-6">This platform helps reunite lost items with their owners. Browse recently found items below, or use the tabs to view all items or report one yourself.</p>
+
+                 <div class="flex flex-col sm:flex-row justify-start items-start sm:items-center gap-2 mb-4">
+                     <label for="filter-found-items" class="mr-2 text-gray-700 font-semibold whitespace-nowrap">Filter Found Items:</label>
+                     <select id="filter-found-items" class="form-select focus:ring-blue-400 focus:border-blue-400 w-full sm:w-auto">
+                         <option value="date_desc">Newest First</option>
+                         <option value="date_asc">Oldest First</option>
+                         <option value="name_asc">By Name (A-Z)</option>
+                         <option value="name_desc">By Name (Z-A)</option>
+                     </select>
+                 </div>
+
+                <h3 class="text-xl font-semibold text-green-700 mb-4 border-b pb-2">Recently Found Items</h3>
+                <div id="home-found-items-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <p class="text-gray-500 text-center col-span-full">Loading items...</p>
+                </div>
+            </div>
+
+            <div id="found-items-page" class="bg-white p-6 rounded-lg shadow-md hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h2 class="text-2xl font-semibold text-green-600">Found Items</h2>
+                    <div class="flex items-center space-x-2">
+                        <label for="sort-found-items" class="text-gray-700 font-medium whitespace-nowrap">Sort by:</label>
+                        <select id="sort-found-items" class="form-select focus:ring-green-400 focus:border-green-400 w-full sm:w-auto">
+                            <option value="date_desc">Newest First</option>
+                            <option value="date_asc">Oldest First</option>
+                            <option value="name_asc">Name (A-Z)</option>
+                            <option value="name_desc">Name (Z-A)</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="found-items-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <p class="text-gray-500 text-center col-span-full">Loading items...</p>
+                </div>
+                <div class="mt-8 border-t pt-6">
+                    <h3 class="text-xl font-semibold text-green-700 mb-4">Report a Found Item</h3>
+                    <form id="found-item-form" class="space-y-4">
+                        <div>
+                            <label for="found-item-name" class="block text-gray-700 text-sm font-bold mb-2">Item Name:</label>
+                            <input type="text" id="found-item-name" name="name" required class="form-input focus:ring-green-400 focus:border-green-400">
+                        </div>
+                        <div>
+                            <label for="found-item-description" class="block text-gray-700 text-sm font-bold mb-2">Description:</label>
+                            <textarea id="found-item-description" name="description" required class="form-textarea focus:ring-green-400 focus:border-green-400"></textarea>
+                        </div>
+                        <div>
+                            <label for="found-item-location" class="block text-gray-700 text-sm font-bold mb-2">Location Found:</label>
+                            <input type="text" id="found-item-location" name="location" required class="form-input focus:ring-green-400 focus:border-green-400">
+                        </div>
+                        <div>
+                            <label for="found-item-contact" class="block text-gray-700 text-sm font-bold mb-2">Your Contact Info (e.g., email or phone):</label>
+                            <input type="text" id="found-item-contact" name="contact" required class="form-input focus:ring-green-400 focus:border-green-400" placeholder="How someone can reach you">
+                        </div>
+                        <div>
+                            <label for="found-item-image" class="block text-gray-700 text-sm font-bold mb-2">Upload Image (Optional):</label>
+                            <input type="file" id="found-item-image" name="image" accept="image/*" class="form-input file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 focus:ring-green-400 focus:border-green-400">
+                        </div>
+                        <button type="submit" class="report-button green w-full sm:w-auto">
+                            Report Found Item
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="lost-items-page" class="bg-white p-6 rounded-lg shadow-md hidden">
+                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h2 class="text-2xl font-semibold text-red-600">Lost Items</h2>
+                     <div class="flex items-center space-x-2">
+                         <label for="sort-lost-items" class="text-gray-700 font-medium whitespace-nowrap">Sort by:</label>
+                        <select id="sort-lost-items" class="form-select focus:ring-red-400 focus:border-red-400 w-full sm:w-auto">
+                            <option value="date_desc">Newest First</option>
+                            <option value="date_asc">Oldest First</option>
+                            <option value="name_asc">Name (A-Z)</option>
+                            <option value="name_desc">Name (Z-A)</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="lost-items-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <p class="text-gray-500 text-center col-span-full">Loading items...</p>
+                </div>
+                 <div class="mt-8 border-t pt-6">
+                    <h3 class="text-xl font-semibold text-red-700 mb-4">Report a Lost Item</h3>
+                    <form id="lost-item-form" class="space-y-4">
+                        <div>
+                            <label for="lost-item-name" class="block text-gray-700 text-sm font-bold mb-2">Item Name:</label>
+                            <input type="text" id="lost-item-name" name="name" required class="form-input focus:ring-red-400 focus:border-red-400">
+                        </div>
+                        <div>
+                            <label for="lost-item-description" class="block text-gray-700 text-sm font-bold mb-2">Description:</label>
+                            <textarea id="lost-item-description" name="description" required class="form-textarea focus:ring-red-400 focus:border-red-400"></textarea>
+                        </div>
+                        <div>
+                            <label for="lost-item-location" class="block text-gray-700 text-sm font-bold mb-2">Location Lost:</label>
+                            <input type="text" id="lost-item-location" name="location" required class="form-input focus:ring-red-400 focus:border-red-400">
+                        </div>
+                         <div>
+                            <label for="lost-item-contact" class="block text-gray-700 text-sm font-bold mb-2">Your Contact Info (e.g., email or phone):</label>
+                            <input type="text" id="lost-item-contact" name="contact" required class="form-input focus:ring-red-400 focus:border-red-400" placeholder="How someone can reach you if found">
+                        </div>
+                        <div>
+                            <label for="lost-item-image" class="block text-gray-700 text-sm font-bold mb-2">Upload Image (Optional):</label>
+                            <input type="file" id="lost-item-image" name="image" accept="image/*" class="form-input file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 focus:ring-red-400 focus:border-red-400">
+                        </div>
+                        <button type="submit" class="report-button red w-full sm:w-auto">
+                            Report Lost Item
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="message-box"></div>
+
+    <script>
+        // DOM Element References
+        const homeTab = document.getElementById('home-tab');
+        const foundItemsTab = document.getElementById('found-items-tab');
+        const lostItemsTab = document.getElementById('lost-items-tab');
+        const homePage = document.getElementById('home-page');
+        const foundItemsPage = document.getElementById('found-items-page');
+        const lostItemsPage = document.getElementById('lost-items-page');
+        const homeFoundItemsList = document.getElementById('home-found-items-list');
+        const foundItemsList = document.getElementById('found-items-list');
+        const lostItemsList = document.getElementById('lost-items-list');
+        const foundItemFormElement = document.getElementById('found-item-form');
+        const lostItemFormElement = document.getElementById('lost-item-form');
+        const sortFoundItemsDropdown = document.getElementById('sort-found-items');
+        const sortLostItemsDropdown = document.getElementById('sort-lost-items');
+        const filterFoundItemsDropdown = document.getElementById('filter-found-items');
+        const messageBox = document.getElementById('message-box');
+
+        // In-memory data store (initialized empty)
+        let items = {
+            found: [],
+            lost: []
+        };
+
+        // --- Data Persistence (localStorage) ---
+
+        /**
+         * Saves the current state of 'items' to localStorage.
+         */
+        function saveData() {
+            try {
+                // Note: Storing images as base64 in localStorage can quickly exceed limits (usually 5-10MB).
+                // For a production app, images should be uploaded to a server.
+                localStorage.setItem('lostAndFoundItems', JSON.stringify(items));
+            } catch (error) {
+                console.error("Error saving data to localStorage:", error);
+                showMessage("Could not save data. Storage might be full.", "error");
+            }
+        }
+
+        /**
+         * Loads 'items' from localStorage. Parses dates back into Date objects.
+         */
+        function loadData() {
+            const data = localStorage.getItem('lostAndFoundItems');
+            if (data) {
+                try {
+                    const parsedData = JSON.parse(data);
+                    // Convert stored date strings back to Date objects
+                    items.found = parsedData.found.map(item => ({
+                        ...item,
+                        date: new Date(item.date) // Parse date string
+                    }));
+                    items.lost = parsedData.lost.map(item => ({
+                        ...item,
+                        date: new Date(item.date) // Parse date string
+                    }));
+                } catch (error) {
+                    console.error("Error parsing data from localStorage:", error);
+                    items = { found: [], lost: [] }; // Reset if data is corrupted
+                    showMessage("Could not load previous data.", "error");
+                }
+            }
+             // Initial display after loading
+            sortAndDisplayItems('found', sortFoundItemsDropdown.value);
+            sortAndDisplayItems('lost', sortLostItemsDropdown.value);
+            filterAndDisplayHomeItems(); // Display filtered/sorted items on home page
+        }
+
+        // --- UI Navigation ---
+
+        /**
+         * Switches the active tab and visible content page.
+         * @param {HTMLElement} activeTab - The tab button to activate.
+         * @param {HTMLElement} showPage - The content page to show.
+         * @param {HTMLElement[]} hidePages - An array of content pages to hide.
+         */
+        function switchTab(activeTab, showPage, hidePages) {
+            // Update tab styles
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active-tab', 'font-semibold');
+                tab.classList.add('inactive-tab');
+            });
+            activeTab.classList.remove('inactive-tab');
+            activeTab.classList.add('active-tab', 'font-semibold');
+
+            // Update page visibility
+            hidePages.forEach(page => page.classList.add('hidden'));
+            showPage.classList.remove('hidden');
+        }
+
+        // --- Item Display ---
+
+        /**
+         * Creates the HTML for a single item card.
+         * @param {object} item - The item object (found or lost).
+         * @param {string} type - 'found' or 'lost'.
+         * @returns {string} HTML string for the item card.
+         */
+        function createItemCardHTML(item, type) {
+            const colorClass = type === 'found' ? 'green' : 'red';
+            // Use a placeholder if image loading fails or no image exists
+            const placeholderUrl = `https://placehold.co/300x200/eeeeee/cccccc?text=No+Image`;
+            const imageTag = item.image
+                ? `<img src="${item.image}" alt="${item.name}" class="w-full h-48 object-cover rounded-t-md mb-4" onerror="this.onerror=null; this.src='${placeholderUrl}';">`
+                : `<img src="${placeholderUrl}" alt="No image available" class="w-full h-48 object-cover rounded-t-md mb-4">`; // Display placeholder if no image
+
+            // Format date for display
+            const formattedDate = item.date instanceof Date && !isNaN(item.date)
+                ? item.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                : 'Unknown Date';
+
+            return `
+                <div class="item-card flex flex-col">
+                    ${imageTag}
+                    <div class="p-4 flex-grow">
+                        <h3 class="text-xl font-semibold text-${colorClass}-600 mb-2">${item.name || 'Untitled Item'}</h3>
+                        <p class="text-gray-700 mb-2 text-sm">${item.description || 'No description provided.'}</p>
+                        <p class="text-gray-600 mb-2 text-sm"><span class="font-semibold">Location:</span> ${item.location || 'Unknown'}</p>
+                        <p class="text-blue-600 font-semibold text-sm">Contact: ${item.contact || 'Not provided'}</p>
+                    </div>
+                    <div class="p-4 border-t text-right">
+                         <p class="text-gray-500 text-xs">Reported: ${formattedDate}</p>
+                    </div>
+                </div>`;
+        }
+
+        /**
+         * Displays items in the specified list container.
+         * @param {string} type - 'found' or 'lost'.
+         * @param {HTMLElement} listContainer - The container element to display items in.
+         * @param {object[]} itemsToDisplay - The array of items to display.
+         */
+        function displayItems(type, listContainer, itemsToDisplay) {
+            listContainer.innerHTML = ''; // Clear previous items
+
+            if (!itemsToDisplay || itemsToDisplay.length === 0) {
+                listContainer.innerHTML = `<p class="text-gray-500 text-center col-span-full py-10">No ${type} items reported yet.</p>`;
+                return;
+            }
+
+            itemsToDisplay.forEach(item => {
+                // Create a temporary div to append the card HTML
+                const tempDiv = document.createElement('div');
+                 // Ensure item has a valid date before creating card
+                if (!(item.date instanceof Date) || isNaN(item.date)) {
+                    console.warn("Invalid date found for item:", item);
+                    item.date = new Date(0); // Assign a default date if invalid
+                }
+                tempDiv.innerHTML = createItemCardHTML(item, type);
+                // Append the actual card element (first child of tempDiv)
+                listContainer.appendChild(tempDiv.firstElementChild);
+            });
+        }
+
+
+        /**
+         * Sorts an array of items based on the selected criteria.
+         * @param {object[]} itemList - The array of items to sort.
+         * @param {string} sortBy - The sorting criteria ('date_desc', 'date_asc', 'name_asc', 'name_desc').
+         * @returns {object[]} The sorted array.
+         */
+        function sortItems(itemList, sortBy) {
+             // Create a shallow copy to avoid modifying the original array directly
+            const sortedList = [...itemList];
+
+            sortedList.sort((a, b) => {
+                 // Ensure dates are valid Date objects before comparison
+                const dateA = (a.date instanceof Date && !isNaN(a.date)) ? a.date.getTime() : 0;
+                const dateB = (b.date instanceof Date && !isNaN(b.date)) ? b.date.getTime() : 0;
+
+                switch (sortBy) {
+                    case 'date_desc':
+                        return dateB - dateA; // Newest first
+                    case 'date_asc':
+                        return dateA - dateB; // Oldest first
+                    case 'name_asc':
+                        return (a.name || '').localeCompare(b.name || ''); // A-Z
+                    case 'name_desc':
+                        return (b.name || '').localeCompare(a.name || ''); // Z-A
+                    default:
+                        return dateB - dateA; // Default to newest first
+                }
+            });
+            return sortedList;
+        }
+
+         /**
+         * Sorts and then displays items for a given type ('found' or 'lost').
+         * @param {string} type - 'found' or 'lost'.
+         * @param {string} sortBy - The sorting criteria.
+         */
+        function sortAndDisplayItems(type, sortBy) {
+            const listContainer = type === 'found' ? foundItemsList : lostItemsList;
+            const sorted = sortItems(items[type], sortBy);
+            displayItems(type, listContainer, sorted);
+        }
+
+
+        /**
+         * Filters and displays found items on the home page based on the filter dropdown.
+         */
+        function filterAndDisplayHomeItems() {
+            const filterValue = filterFoundItemsDropdown.value;
+            const sortedFoundItems = sortItems(items.found, filterValue);
+            // Display all sorted found items on the home page for now
+            // Could be limited (e.g., slice(0, 6)) if needed
+            displayItems('found', homeFoundItemsList, sortedFoundItems);
+        }
+
+
+        // --- Form Handling ---
+
+        /**
+         * Handles the submission of both found and lost item forms.
+         * @param {Event} event - The form submission event.
+         * @param {string} type - 'found' or 'lost'.
+         */
+        function handleFormSubmit(event, type) {
+            event.preventDefault(); // Prevent default form submission
+
+            const form = event.target;
+            const name = form.name.value.trim();
+            const description = form.description.value.trim();
+            const location = form.location.value.trim();
+            const contact = form.contact.value.trim();
+            const imageFile = form.image?.files[0]; // Optional chaining for safety
+
+            // Basic validation
+            if (!name || !description || !location || !contact) {
+                showMessage('Please fill in all required fields (Name, Description, Location, Contact).', 'error');
+                return;
+            }
+
+            const newItem = {
+                id: Date.now() + Math.random().toString(16).slice(2), // Simple unique ID
+                name,
+                description,
+                location,
+                contact,
+                date: new Date(), // Record submission time
+                image: null // Initialize image as null
+            };
+
+            // Handle image upload if a file is selected
+            if (imageFile) {
+                // Check file size (e.g., limit to 2MB)
+                if (imageFile.size > 2 * 1024 * 1024) {
+                     showMessage('Image file is too large (max 2MB).', 'error');
+                     return;
+                }
+
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    newItem.image = e.target.result; // Store image as base64 data URL
+                    // Add item and update UI after image is loaded
+                    items[type].push(newItem);
+                    saveData();
+                    sortAndDisplayItems(type, type === 'found' ? sortFoundItemsDropdown.value : sortLostItemsDropdown.value);
+                    if (type === 'found') filterAndDisplayHomeItems(); // Update home page too
+                    form.reset(); // Clear the form
+                    showMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} item reported successfully!`, 'success');
+                };
+
+                reader.onerror = () => {
+                    console.error("Error reading file:", reader.error);
+                    showMessage('Could not read the image file.', 'error');
+                };
+
+                reader.readAsDataURL(imageFile); // Read the file
+            } else {
+                // Add item and update UI immediately if no image
+                items[type].push(newItem);
+                saveData();
+                sortAndDisplayItems(type, type === 'found' ? sortFoundItemsDropdown.value : sortLostItemsDropdown.value);
+                 if (type === 'found') filterAndDisplayHomeItems(); // Update home page too
+                form.reset(); // Clear the form
+                showMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} item reported successfully!`, 'success');
+            }
+        }
+
+        // --- User Feedback ---
+
+        let messageTimeout; // Variable to hold the timeout ID
+
+        /**
+         * Displays a temporary message to the user.
+         * @param {string} text - The message text.
+         * @param {'success' | 'error'} type - The type of message ('success' or 'error').
+         */
+        function showMessage(text, type = 'success') {
+            // Clear any existing timeout to prevent overlapping messages
+            if (messageTimeout) {
+                clearTimeout(messageTimeout);
+            }
+
+            messageBox.textContent = text;
+            messageBox.className = 'show'; // Remove previous type classes before adding new ones
+            messageBox.classList.add(type); // Add 'success' or 'error' class
+
+            // Set a timeout to hide the message after 3 seconds
+            messageTimeout = setTimeout(() => {
+                messageBox.classList.remove('show');
+                 // Optionally remove type class after fade out
+                 setTimeout(() => {
+                     messageBox.classList.remove('success', 'error');
+                     messageTimeout = null; // Reset timeout ID
+                 }, 500); // Wait for fade out transition
+            }, 3000);
+        }
+
+
+        // --- Event Listeners ---
+
+        // Tab switching
+        homeTab.addEventListener('click', () => {
+            switchTab(homeTab, homePage, [foundItemsPage, lostItemsPage]);
+            filterAndDisplayHomeItems(); // Refresh home items on tab switch
+        });
+        foundItemsTab.addEventListener('click', () => {
+            switchTab(foundItemsTab, foundItemsPage, [homePage, lostItemsPage]);
+        });
+        lostItemsTab.addEventListener('click', () => {
+            switchTab(lostItemsTab, lostItemsPage, [homePage, foundItemsPage]);
+        });
+
+        // Form submissions
+        foundItemFormElement.addEventListener('submit', (event) => handleFormSubmit(event, 'found'));
+        lostItemFormElement.addEventListener('submit', (event) => handleFormSubmit(event, 'lost'));
+
+        // Sorting dropdowns
+        sortFoundItemsDropdown.addEventListener('change', (event) => {
+            sortAndDisplayItems('found', event.target.value);
+        });
+        sortLostItemsDropdown.addEventListener('change', (event) => {
+            sortAndDisplayItems('lost', event.target.value);
+        });
+
+         // Home page filter dropdown
+        filterFoundItemsDropdown.addEventListener('change', filterAndDisplayHomeItems);
+
+
+        // --- Initial Load ---
+        // Load data from localStorage when the page loads
+        loadData();
+        // Set the initial active tab and page
+        switchTab(homeTab, homePage, [foundItemsPage, lostItemsPage]);
+
+    </script>
+</body>
+</html>
